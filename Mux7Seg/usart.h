@@ -66,7 +66,7 @@ typedef struct _USART {
 #else
 #define L_PARITY_ERROR      (1<<UPE0)   /* parity error occured     */
 #endif
-#define L_DATA_OVERRUN      (1<<DOR0)	/* overrun error occured    */
+#define L_DATA_OVERRUN      (1<<DOR0)   /* overrun error occured    */
 
 /* modem status bits and macros */
 #define M_DELTA_CTS         0x01        /* change in clear to send  */

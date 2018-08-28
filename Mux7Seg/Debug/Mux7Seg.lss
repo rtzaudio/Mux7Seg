@@ -124,78 +124,78 @@ ISR(TIMER0_COMPA_vect)
   88:	ef 93       	push	r30
   8a:	ff 93       	push	r31
     static uint8_t state = 0;
-	static uint16_t blink = 0;
-	
-	/* Handle blanked state logic */
-	
-	if (g_segdata.flags & F_BLANK)
+    static uint16_t blink = 0;
+  
+    /* Handle blanked state logic */
+  
+    if (g_segdata.flags & F_BLANK)
   8c:	80 91 73 01 	lds	r24, 0x0173	; 0x800173 <g_segdata>
   90:	88 23       	and	r24, r24
   92:	34 f4       	brge	.+12     	; 0xa0 <__vector_14+0x34>
-	{
+    {
         /* Blank hour, plus is preserved */
         PORTD |= _BV(PD_HOUR);
   94:	5e 9a       	sbi	0x0b, 6	; 11
-		/* Turn off all segments */
+        /* Turn off all segments */
         MUX_OFF(PD_TEN_MIN);
   96:	5c 9a       	sbi	0x0b, 4	; 11
         MUX_OFF(PD_UNIT_MIN);
   98:	5d 9a       	sbi	0x0b, 5	; 11
-		MUX_OFF(PD_TEN_SEC);        
+        MUX_OFF(PD_TEN_SEC);        
   9a:	5a 9a       	sbi	0x0b, 2	; 11
-		MUX_OFF(PD_UNIT_SEC);
+        MUX_OFF(PD_UNIT_SEC);
   9c:	5b 9a       	sbi	0x0b, 3	; 11
-		goto exit;
+        goto exit;
   9e:	a9 c0       	rjmp	.+338    	; 0x1f2 <__vector_14+0x186>
-	}
+    }
 
-	/* Handle blink state logic */
-	
-	if (g_segdata.flags & F_BLINK)
+    /* Handle blink state logic */
+  
+    if (g_segdata.flags & F_BLINK)
   a0:	81 ff       	sbrs	r24, 1
   a2:	19 c0       	rjmp	.+50     	; 0xd6 <__vector_14+0x6a>
-	{
-		blink++;
+    {
+        blink++;
   a4:	80 91 11 01 	lds	r24, 0x0111	; 0x800111 <blink.2535>
   a8:	90 91 12 01 	lds	r25, 0x0112	; 0x800112 <blink.2535+0x1>
   ac:	01 96       	adiw	r24, 0x01	; 1
   ae:	90 93 12 01 	sts	0x0112, r25	; 0x800112 <blink.2535+0x1>
   b2:	80 93 11 01 	sts	0x0111, r24	; 0x800111 <blink.2535>
-		
-		/* Blink OFF time */
-		if (blink <= 100)
+    
+        /* Blink OFF time */
+        if (blink <= 100)
   b6:	85 36       	cpi	r24, 0x65	; 101
   b8:	91 05       	cpc	r25, r1
   ba:	30 f4       	brcc	.+12     	; 0xc8 <__vector_14+0x5c>
-		{
-			/* Blank hour, plus is preserved */
-			PORTD |= _BV(PD_HOUR);
+        {
+            /* Blank hour, plus is preserved */
+            PORTD |= _BV(PD_HOUR);
   bc:	5e 9a       	sbi	0x0b, 6	; 11
-			/* Turn off all segments */
-			MUX_OFF(PD_TEN_MIN);
+            /* Turn off all segments */
+            MUX_OFF(PD_TEN_MIN);
   be:	5c 9a       	sbi	0x0b, 4	; 11
-			MUX_OFF(PD_UNIT_MIN);
+            MUX_OFF(PD_UNIT_MIN);
   c0:	5d 9a       	sbi	0x0b, 5	; 11
-			MUX_OFF(PD_TEN_SEC);
+            MUX_OFF(PD_TEN_SEC);
   c2:	5a 9a       	sbi	0x0b, 2	; 11
-			MUX_OFF(PD_UNIT_SEC);
+            MUX_OFF(PD_UNIT_SEC);
   c4:	5b 9a       	sbi	0x0b, 3	; 11
-			goto exit;
+            goto exit;
   c6:	95 c0       	rjmp	.+298    	; 0x1f2 <__vector_14+0x186>
-		}
+        }
 
-		/* Blink ON time */
-		if (blink >= 275)
+        /* Blink ON time */
+        if (blink >= 275)
   c8:	83 31       	cpi	r24, 0x13	; 19
   ca:	91 40       	sbci	r25, 0x01	; 1
   cc:	20 f0       	brcs	.+8      	; 0xd6 <__vector_14+0x6a>
-			blink = 0;
+            blink = 0;
   ce:	10 92 12 01 	sts	0x0112, r1	; 0x800112 <blink.2535+0x1>
   d2:	10 92 11 01 	sts	0x0111, r1	; 0x800111 <blink.2535>
-	}
-	
-	/*** Set digit/segment value for current multiplex state ***/
-	
+    }
+  
+    /*** Set digit/segment value for current multiplex state ***/
+  
     switch(state)
   d6:	80 91 10 01 	lds	r24, 0x0110	; 0x800110 <__data_end>
   da:	81 30       	cpi	r24, 0x01	; 1
@@ -212,7 +212,7 @@ ISR(TIMER0_COMPA_vect)
   e8:	5c 9a       	sbi	0x0b, 4	; 11
             /* set tens of sec segment state */
             bcd = g_segdata.secs % 10;
-			PORTC = g_xlate[bcd];
+            PORTC = g_xlate[bcd];
   ea:	e0 91 76 01 	lds	r30, 0x0176	; 0x800176 <g_segdata+0x3>
   ee:	8d ec       	ldi	r24, 0xCD	; 205
   f0:	e8 9f       	mul	r30, r24
@@ -248,7 +248,7 @@ ISR(TIMER0_COMPA_vect)
             /* set unit sec segment state */            
             bcd = (g_segdata.secs - (g_segdata.secs % 10)) / 10;
  122:	20 91 76 01 	lds	r18, 0x0176	; 0x800176 <g_segdata+0x3>
-			PORTC = g_xlate[bcd];
+            PORTC = g_xlate[bcd];
  126:	42 2f       	mov	r20, r18
  128:	50 e0       	ldi	r21, 0x00	; 0
  12a:	9d ec       	ldi	r25, 0xCD	; 205
@@ -291,7 +291,7 @@ ISR(TIMER0_COMPA_vect)
  16a:	5a 9a       	sbi	0x0b, 2	; 11
             /* set tens of min segment state */
             bcd = g_segdata.mins % 10;
-			PORTC = g_xlate[bcd];
+            PORTC = g_xlate[bcd];
  16c:	e0 91 75 01 	lds	r30, 0x0175	; 0x800175 <g_segdata+0x2>
  170:	8d ec       	ldi	r24, 0xCD	; 205
  172:	e8 9f       	mul	r30, r24
@@ -327,7 +327,7 @@ ISR(TIMER0_COMPA_vect)
             /* set unit min segment state */
             bcd = (g_segdata.mins - (g_segdata.mins % 10)) / 10;
  1a4:	20 91 75 01 	lds	r18, 0x0175	; 0x800175 <g_segdata+0x2>
-			PORTC = g_xlate[bcd];
+            PORTC = g_xlate[bcd];
  1a8:	42 2f       	mov	r20, r18
  1aa:	50 e0       	ldi	r21, 0x00	; 0
  1ac:	9d ec       	ldi	r25, 0xCD	; 205
@@ -364,7 +364,7 @@ ISR(TIMER0_COMPA_vect)
      * other segments (as opposed to just on or off).
      */
     
-	if (g_segdata.hour)
+    if (g_segdata.hour)
  1e4:	80 91 74 01 	lds	r24, 0x0174	; 0x800174 <g_segdata+0x1>
  1e8:	88 23       	and	r24, r24
  1ea:	11 f0       	breq	.+4      	; 0x1f0 <__vector_14+0x184>
@@ -379,7 +379,7 @@ ISR(TIMER0_COMPA_vect)
 
 exit:
 
-	if (g_segdata.flags & F_PLUS)
+    if (g_segdata.flags & F_PLUS)
  1f2:	80 91 73 01 	lds	r24, 0x0173	; 0x800173 <g_segdata>
  1f6:	80 ff       	sbrs	r24, 0
  1f8:	02 c0       	rjmp	.+4      	; 0x1fe <__vector_14+0x192>
@@ -448,7 +448,7 @@ exit:
     DDRC  = _BV(PC_7SEG_A) | _BV(PC_7SEG_B) | _BV(PC_7SEG_C) | _BV(PC_7SEG_D);
  23a:	8f e0       	ldi	r24, 0x0F	; 15
  23c:	87 b9       	out	0x07, r24	; 7
-	_NOP();
+    _NOP();
  23e:	00 00       	nop
      * PD_HOUR      PD6   (out) drive 7SEG_HOUR
      * PD_PLUS      PD7   (out) drive 7SEG_PLUS
@@ -462,9 +462,9 @@ exit:
  242:	8e ef       	ldi	r24, 0xFE	; 254
  244:	8a b9       	out	0x0a, r24	; 10
             _BV(PD_UNIT_MIN) | _BV(PD_HOUR) | _BV(PD_PLUS);
-	_NOP();
+    _NOP();
  246:	00 00       	nop
-	
+  
     /* All high to disable */
     PORTD |= _BV(PD_TEN_SEC) | _BV(PD_UNIT_SEC) | _BV(PD_TEN_MIN) |
  248:	8b b1       	in	r24, 0x0b	; 11
@@ -489,10 +489,10 @@ int main(void)
  25e:	de bf       	out	0x3e, r29	; 62
  260:	0f be       	out	0x3f, r0	; 63
  262:	cd bf       	out	0x3d, r28	; 61
-	uint8_t buf[8];
-	uint8_t csum;
-	uint8_t check;	
-	
+    uint8_t buf[8];
+    uint8_t csum;
+    uint8_t check;  
+  
     /* Default time to zero */
     g_segdata.flags = F_PLUS;
  264:	e3 e7       	ldi	r30, 0x73	; 115
@@ -525,38 +525,38 @@ int main(void)
  27c:	25 e0       	ldi	r18, 0x05	; 5
  27e:	e2 0e       	add	r14, r18
  280:	f1 1c       	adc	r15, r1
-		
-		if (check == csum)
-		{
-			//_CLI();
-			/* Valid packet received, update display data */
-			g_segdata.secs  = buf[0] & 0x3F;
+    
+    if (check == csum)
+    {
+        //_CLI();
+        /* Valid packet received, update display data */
+        g_segdata.secs  = buf[0] & 0x3F;
  282:	0f 2e       	mov	r0, r31
  284:	f3 e7       	ldi	r31, 0x73	; 115
  286:	cf 2e       	mov	r12, r31
  288:	f1 e0       	ldi	r31, 0x01	; 1
  28a:	df 2e       	mov	r13, r31
  28c:	f0 2d       	mov	r31, r0
-		 */
+     */
 
-		/* Read start of frame preamble 0x89 */
+    /* Read start of frame preamble 0x89 */
 
-		do  {
-			if ((c = usart_tgetc(100)) == -1)
+    do  {
+        if ((c = usart_tgetc(100)) == -1)
  28e:	84 e6       	ldi	r24, 0x64	; 100
  290:	90 e0       	ldi	r25, 0x00	; 0
  292:	86 d0       	rcall	.+268    	; 0x3a0 <usart_tgetc>
-				goto TimeOut;
+            goto TimeOut;
 
-		} while(c != 0x89);
+    } while(c != 0x89);
  294:	89 38       	cpi	r24, 0x89	; 137
  296:	91 05       	cpc	r25, r1
  298:	d1 f7       	brne	.-12     	; 0x28e <main+0x3e>
 
-		/* Read start of frame preamble 0xFC */
-		
-		do  {
-			if ((c = usart_tgetc(100)) == -1)
+    /* Read start of frame preamble 0xFC */
+    
+    do  {
+        if ((c = usart_tgetc(100)) == -1)
  29a:	84 e6       	ldi	r24, 0x64	; 100
  29c:	90 e0       	ldi	r25, 0x00	; 0
  29e:	80 d0       	rcall	.+256    	; 0x3a0 <usart_tgetc>
@@ -564,8 +564,8 @@ int main(void)
  2a2:	ef ef       	ldi	r30, 0xFF	; 255
  2a4:	9e 07       	cpc	r25, r30
  2a6:	99 f3       	breq	.-26     	; 0x28e <main+0x3e>
-				goto TimeOut;
-		} while(c != 0xFC);
+            goto TimeOut;
+    } while(c != 0xFC);
  2a8:	8c 3f       	cpi	r24, 0xFC	; 252
  2aa:	91 05       	cpc	r25, r1
  2ac:	b1 f7       	brne	.-20     	; 0x29a <main+0x4a>
@@ -573,16 +573,16 @@ int main(void)
  2b0:	0f 5f       	subi	r16, 0xFF	; 255
  2b2:	1f 4f       	sbci	r17, 0xFF	; 255
  2b4:	b1 2c       	mov	r11, r1
-		
-		csum = 0;
-		
-		for (i=0; i < 4; i++)
-		{
-			buf[i] = 0;
+    
+    csum = 0;
+    
+    for (i=0; i < 4; i++)
+    {
+        buf[i] = 0;
  2b6:	f8 01       	movw	r30, r16
  2b8:	10 82       	st	Z, r1
-			
-			if ((c = usart_tgetc(100)) == -1)
+      
+        if ((c = usart_tgetc(100)) == -1)
  2ba:	84 e6       	ldi	r24, 0x64	; 100
  2bc:	90 e0       	ldi	r25, 0x00	; 0
  2be:	70 d0       	rcall	.+224    	; 0x3a0 <usart_tgetc>
@@ -590,32 +590,32 @@ int main(void)
  2c2:	ff ef       	ldi	r31, 0xFF	; 255
  2c4:	9f 07       	cpc	r25, r31
  2c6:	19 f3       	breq	.-58     	; 0x28e <main+0x3e>
-				goto TimeOut;
-			
-			/* Buffer the rx packet data */
-			buf[i]= (uint8_t)c;
+            goto TimeOut;
+      
+        /* Buffer the rx packet data */
+        buf[i]= (uint8_t)c;
  2c8:	f8 01       	movw	r30, r16
  2ca:	81 93       	st	Z+, r24
  2cc:	8f 01       	movw	r16, r30
-			
-			/* Update the checksum */
-			csum += ((uint8_t)c & 0xFF);
+      
+        /* Update the checksum */
+        csum += ((uint8_t)c & 0xFF);
  2ce:	b8 0e       	add	r11, r24
 
-		/* Read sign, hour, mins, secs and calculate checksum */
-		
-		csum = 0;
-		
-		for (i=0; i < 4; i++)
+    /* Read sign, hour, mins, secs and calculate checksum */
+    
+    csum = 0;
+    
+    for (i=0; i < 4; i++)
  2d0:	ee 16       	cp	r14, r30
  2d2:	ff 06       	cpc	r15, r31
  2d4:	81 f7       	brne	.-32     	; 0x2b6 <main+0x66>
-			/* Update the checksum */
-			csum += ((uint8_t)c & 0xFF);
-		}
+        /* Update the checksum */
+        csum += ((uint8_t)c & 0xFF);
+    }
 
-		/* Read the checksum MSB */
-		if ((c = usart_tgetc(100)) == -1)
+    /* Read the checksum MSB */
+    if ((c = usart_tgetc(100)) == -1)
  2d6:	84 e6       	ldi	r24, 0x64	; 100
  2d8:	90 e0       	ldi	r25, 0x00	; 0
  2da:	62 d0       	rcall	.+196    	; 0x3a0 <usart_tgetc>
@@ -624,30 +624,30 @@ int main(void)
  2e0:	9f 07       	cpc	r25, r31
  2e2:	a9 f2       	breq	.-86     	; 0x28e <main+0x3e>
 
-		check = (uint8_t)c & 0xFF;
+    check = (uint8_t)c & 0xFF;
 
-		/* Validate the CRC values match */
-		
-		if (check == csum)
+    /* Validate the CRC values match */
+    
+    if (check == csum)
  2e4:	b8 12       	cpse	r11, r24
  2e6:	d3 cf       	rjmp	.-90     	; 0x28e <main+0x3e>
-		{
-			//_CLI();
-			/* Valid packet received, update display data */
-			g_segdata.secs  = buf[0] & 0x3F;
+    {
+        //_CLI();
+        /* Valid packet received, update display data */
+        g_segdata.secs  = buf[0] & 0x3F;
  2e8:	89 81       	ldd	r24, Y+1	; 0x01
  2ea:	8f 73       	andi	r24, 0x3F	; 63
  2ec:	f6 01       	movw	r30, r12
  2ee:	83 83       	std	Z+3, r24	; 0x03
-			g_segdata.mins  = buf[1] & 0x3F;
+        g_segdata.mins  = buf[1] & 0x3F;
  2f0:	8a 81       	ldd	r24, Y+2	; 0x02
  2f2:	8f 73       	andi	r24, 0x3F	; 63
  2f4:	82 83       	std	Z+2, r24	; 0x02
-			g_segdata.hour  = buf[2] & 0x01;
+        g_segdata.hour  = buf[2] & 0x01;
  2f6:	8b 81       	ldd	r24, Y+3	; 0x03
  2f8:	81 70       	andi	r24, 0x01	; 1
  2fa:	81 83       	std	Z+1, r24	; 0x01
-			g_segdata.flags = buf[3];
+        g_segdata.flags = buf[3];
  2fc:	8c 81       	ldd	r24, Y+4	; 0x04
  2fe:	80 83       	st	Z, r24
  300:	c6 cf       	rjmp	.-116    	; 0x28e <main+0x3e>
@@ -816,7 +816,7 @@ ISR(USART_UDRE_vect)
  438:	93 07       	cpc	r25, r19
  43a:	51 f4       	brne	.+20     	; 0x450 <__vector_19+0x42>
     {
-		UCSR0B &= ~(1<<UDRIE0);                     /* disable UDRE int's */
+        UCSR0B &= ~(1<<UDRIE0);                     /* disable UDRE int's */
  43c:	e1 ec       	ldi	r30, 0xC1	; 193
  43e:	f0 e0       	ldi	r31, 0x00	; 0
  440:	80 81       	ld	r24, Z

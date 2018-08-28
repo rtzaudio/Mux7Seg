@@ -48,8 +48,8 @@ static USART async;
  * USART INITIALIZATION
  ***************************************************************************/
 
-#define BAUD		250000		//38400
-#define BAUDRATE	((F_CPU)/(BAUD*16UL)-1)
+#define BAUD        250000      //38400
+#define BAUDRATE    ((F_CPU)/(BAUD*16UL)-1)
 
 void usart_init(void) 
 {
@@ -61,21 +61,21 @@ void usart_init(void)
     async.tx.tail  = 0;     /* tx queue tail index */
     async.tx.count = 0;     /* tx queue size       */
 
-	/* HARD CODED FOR 38.4 bps FOR NOW */
-    //UBRR0L = 25;	//(uint8_t)(ubbr >> 8);
-    //UBRR0H = 0;	// (uint8_t)(ubbr);
+    /* HARD CODED FOR 38.4 bps FOR NOW */
+    //UBRR0L = 25;  //(uint8_t)(ubbr >> 8);
+    //UBRR0H = 0;   // (uint8_t)(ubbr);
 
-	/* Set the baud rate registers */    
+    /* Set the baud rate registers */    
     UBRR0H = (BAUDRATE >> 8);
     UBRR0L = BAUDRATE;
-	
+    
     /* Enable receiver and transmitter */
     UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);
     /* Set frame format: 8 data bits, no parity, 1 stop bit */
-	UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);
+    UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);
 
     /* hook to stdlib printf() functions etc */
-	//fdevopen(usart_putc, NULL, 0);
+    //fdevopen(usart_putc, NULL, 0);
     //stdout = &mystdout;
 }
 
@@ -83,7 +83,7 @@ void usart_init(void)
  * Name:        USART_DELAY_MS - General purpose ms delay function.
  *
  * Synopsis:    void usart_delay_ms(ms)
- *              int ms;		- millisecond delay value (1=1ms)
+ *              int ms;     - millisecond delay value (1=1ms)
  *
  * Description: Gets a character from the receive the queue.
  *
@@ -94,8 +94,8 @@ void usart_delay_ms(uint16_t ms)
 {
     uint16_t d;
 
-	//_delay_ms(10UL);
-	
+    //_delay_ms(10UL);
+    
     for (d=0; d < ms; d++) {
         /* 16-bit count - 4 cycles/loop */
         _delay_loop_2((uint16_t)(F_CPU / 4000UL));
@@ -296,7 +296,7 @@ ISR(USART_UDRE_vect)
 
     if (async.tx.head == async.tx.tail)             /* get head pointer   */
     {
-		UCSR0B &= ~(1<<UDRIE0);                     /* disable UDRE int's */
+        UCSR0B &= ~(1<<UDRIE0);                     /* disable UDRE int's */
         async.tx.count = 0;                         /* reset buf count    */
     }
     else
