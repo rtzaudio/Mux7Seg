@@ -11,7 +11,7 @@
  */
 
 /* STC-1200 Hardware rev level, 1=REV-A, etc */
-#define HARDWARE_REV        1
+#define HARDWARE_REV        2
 
 /* Non-zero to enable watchdog */
 #define WATCHDOG_RESET      0
@@ -33,16 +33,16 @@
 /* Binary Display Time Data */
 
 struct segdata {
-    uint8_t flags;   /* 0=minus/1=plus */
-    uint8_t hour;    /* hour (1-12)    */
-    uint8_t mins;    /* minutes (0-59) */
-    uint8_t secs;    /* seconds (0-59) */
+	uint8_t flags;   /* 0=minus/1=plus */
+	uint8_t hour;    /* hour (1-12)    */
+	uint8_t mins;    /* minutes (0-59) */
+	uint8_t secs;    /* seconds (0-59) */
 };
 
 /* Bit flags for segdata.flags */
-#define F_PLUS      0x01    /* 7-seg plus segment, negative if clear */
-#define F_BLINK     0x02    /* blink all seven segment displays      */
-#define F_BLANK     0x80    /* blank the entire display if set       */
+#define F_PLUS		0x01	/* 7-seg plus segment, negative if clear */
+#define F_BLINK		0x02	/* blink all seven segment displays      */
+#define F_BLANK		0x80	/* blank the entire display if set       */
 
 /*****************************************************************************
  * ATMEGA88 STC-1200 Hardware Definitions
