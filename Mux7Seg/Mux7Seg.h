@@ -10,7 +10,7 @@
  * ============================================================================
  */
 
-/* STC-1200 Hardware rev level, 1=REV-A, etc */
+/* STC-1200 Hardware rev level, 1=REV-A, 2=REV-B, etc */
 #define HARDWARE_REV        2
 
 /* Non-zero to enable watchdog */
