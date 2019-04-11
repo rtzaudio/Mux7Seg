@@ -23,11 +23,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   9 .debug_frame  00000218  00000000  00000000  000027c4  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    000004da  00000000  00000000  000029dc  2**0
+ 10 .debug_str    000004e1  00000000  00000000  000029dc  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    0000083f  00000000  00000000  00002eb6  2**0
+ 11 .debug_loc    0000083f  00000000  00000000  00002ebd  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 000000b0  00000000  00000000  000036f5  2**0
+ 12 .debug_ranges 000000b0  00000000  00000000  000036fc  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -378,7 +378,7 @@ exit:
 
     /* Set initial timer count value */
     OCR0A  = (uint8_t)(((F_CPU / 1024L) / MUX_RATE_HZ));
- 1dc:	8f e1       	ldi	r24, 0x1F	; 31
+ 1dc:	8f e0       	ldi	r24, 0x0F	; 15
  1de:	87 bd       	out	0x27, r24	; 39
 
     /* Divide clock(16mhz) by 1024 */
@@ -636,7 +636,7 @@ int main(void)
  2e6:	10 92 5e 01 	sts	0x015E, r1	; 0x80015e <async+0x5b>
  2ea:	10 92 5d 01 	sts	0x015D, r1	; 0x80015d <async+0x5a>
  2ee:	10 92 c5 00 	sts	0x00C5, r1	; 0x8000c5 <__EEPROM_REGION_LENGTH__+0x7f00c5>
- 2f2:	83 e0       	ldi	r24, 0x03	; 3
+ 2f2:	81 e0       	ldi	r24, 0x01	; 1
  2f4:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__EEPROM_REGION_LENGTH__+0x7f00c4>
  2f8:	88 e9       	ldi	r24, 0x98	; 152
  2fa:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__EEPROM_REGION_LENGTH__+0x7f00c1>
@@ -701,8 +701,8 @@ int main(void)
  378:	17 c0       	rjmp	.+46     	; 0x3a8 <usart_tgetc+0x4c>
  37a:	00 e0       	ldi	r16, 0x00	; 0
  37c:	10 e0       	ldi	r17, 0x00	; 0
- 37e:	c0 ea       	ldi	r28, 0xA0	; 160
- 380:	df e0       	ldi	r29, 0x0F	; 15
+ 37e:	c0 ed       	ldi	r28, 0xD0	; 208
+ 380:	d7 e0       	ldi	r29, 0x07	; 7
  382:	c1 df       	rcall	.-126    	; 0x306 <usart_getc>
  384:	8f 3f       	cpi	r24, 0xFF	; 255
  386:	2f ef       	ldi	r18, 0xFF	; 255
