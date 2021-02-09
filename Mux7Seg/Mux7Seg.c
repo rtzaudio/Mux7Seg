@@ -26,7 +26,16 @@
 #include <util/crc16.h>
 #include "Mux7Seg.h"
 #include "usart.h"
-
+ 
+/* Fuse settings for ELF programmers */
+FUSES = 
+{
+	.extended = 0xF9,
+	.high = 0xDF,
+	.low  = 0xF7
+};
+//LOCKBITS = (0xFF);
+  
 /* BCD bit map table for swapped I/O pins */
 #if (HARDWARE_REV < 2)
 static uint8_t g_xlate[] =
