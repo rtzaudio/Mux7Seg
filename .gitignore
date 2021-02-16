@@ -3,7 +3,6 @@
 *.d
 *.ko
 *.obj
-*.elf
 *.bak
 
 # Directories
