@@ -68,7 +68,7 @@ void timer_init(void);
 void spi_init_slave(void);
 
 const char _copyright[] PROGMEM = {
-    "STC-1200 7-SEG MUX, Copyright (C) 2016-2019, RTZ Professional Audio, LLC"
+    "STC-1200 7-SEG MUX, Copyright (C) 2016-2021, RTZ Professional Audio, LLC"
 };
 
 /****************************************************************************
@@ -251,7 +251,7 @@ ISR(TIMER0_COMPA_vect)
 		blink++;
 		
 		/* Blink OFF time */
-		if (blink <= 100)
+		if (blink <= (MUX_RATE_HZ/5))
 		{
 			/* Blank hour, plus is preserved */
 			PORTD |= _BV(PD_HOUR);
@@ -264,7 +264,7 @@ ISR(TIMER0_COMPA_vect)
 		}
 
 		/* Blink ON time */
-		if (blink >= 275)
+		if (blink >= (MUX_RATE_HZ/2))
 			blink = 0;
 	}
 	
