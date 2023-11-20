@@ -20,7 +20,7 @@
 #define SPI_500KHZ          0
 
 /* 7-Segment Refresh Rate */
-#define MUX_RATE_HZ         1000UL
+#define MUX_RATE_HZ         160UL
 
 /*
  * Helper Macros
