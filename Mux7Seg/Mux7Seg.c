@@ -28,7 +28,7 @@
 #include "usart.h"
  
 /* Fuse settings for ELF programmers. These fuse
- * settings are for 16Mhz external crystal.
+ * settings are for 16Mhz external 18pF crystal.
  */
 FUSES = 
 {
@@ -241,15 +241,15 @@ TimeOut:
 
 ISR(TIMER0_COMPA_vect)
 {
-#if 1
+#if 0
+	/* debug */
 	PORTD = PORTD ^ _BV(PD2);
 #else	
-	uint8_t bcd;
     static uint8_t state = 0;
-	//static uint16_t blink = 0;
+	static uint16_t blink = 0;
 	
 	/* Handle blanked state logic */
-#if 0	
+#if 1	
 	if (g_segdata.flags & F_BLANK)
 	{
         /* Blank hour, plus is preserved */
@@ -269,7 +269,7 @@ ISR(TIMER0_COMPA_vect)
 		blink++;
 		
 		/* Blink OFF time */
-		if (blink <= (MUX_RATE_HZ/5))
+		if (blink <= (MUX_RATE_HZ/50))
 		{
 			/* Blank hour, plus is preserved */
 			PORTD |= _BV(PD_HOUR);
@@ -282,7 +282,7 @@ ISR(TIMER0_COMPA_vect)
 		}
 
 		/* Blink ON time */
-		if (blink >= (MUX_RATE_HZ/2))
+		if (blink >= (MUX_RATE_HZ/20))
 			blink = 0;
 	}
 #endif
@@ -338,10 +338,10 @@ ISR(TIMER0_COMPA_vect)
      * other segments (as opposed to just on or off).
      */
     
-	//if (g_segdata.hour)
-    //    PORTD &= ~(_BV(PD_HOUR));
-    //else
-    //    PORTD |= _BV(PD_HOUR);
+	if (g_segdata.hour)
+        PORTD &= ~(_BV(PD_HOUR));
+    else
+        PORTD |= _BV(PD_HOUR);
         
     /* If the plus sign segment is enabled, set the plus sign
      * either on or off. We don't mux this segment as the 
@@ -353,10 +353,10 @@ ISR(TIMER0_COMPA_vect)
 
 exit:
 
-	//if (g_segdata.flags & F_PLUS)
-    //    PORTD &= ~(_BV(PD_PLUS));
-    //else
-    //    PORTD |= _BV(PD_PLUS);
+	if (g_segdata.flags & F_PLUS)
+        PORTD &= ~(_BV(PD_PLUS));
+    else
+        PORTD |= _BV(PD_PLUS);
 #endif
 }
 
@@ -375,11 +375,10 @@ void timer_init(void)
      */
 
     /* Set initial timer count value */
-    //OCR0A  = (uint8_t)(((F_CPU /8L) / MUX_RATE_HZ));
-    OCR0A  = (uint8_t)(((F_CPU) / MUX_RATE_HZ));
+    OCR0A  = (uint8_t)(F_CPU / MUX_RATE_HZ);
 	
-    /* Divide clock(16mhz) by 1024 */
-    TCCR0B = /*_BV(CS02) |*/ _BV(CS00);
+    /* No clock divider */
+    TCCR0B = _BV(CS00);
 
     /* Normal CTC mode */
     TCCR0A = _BV(WGM01);
