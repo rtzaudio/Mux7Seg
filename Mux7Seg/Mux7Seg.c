@@ -226,12 +226,15 @@ TimeOut:
                         
 ISR(TIMER0_COMPA_vect)
 {
+#if 1
+	PORTD = PORTD ^ _BV(PD2);
+#else	
 	uint8_t bcd;
     static uint8_t state = 0;
 	static uint16_t blink = 0;
 	
 	/* Handle blanked state logic */
-	
+#if 0	
 	if (g_segdata.flags & F_BLANK)
 	{
         /* Blank hour, plus is preserved */
@@ -267,6 +270,7 @@ ISR(TIMER0_COMPA_vect)
 		if (blink >= (MUX_RATE_HZ/2))
 			blink = 0;
 	}
+#endif
 	
 	/*** Set digit/segment value for current multiplex state ***/
 	
@@ -338,6 +342,7 @@ exit:
         PORTD &= ~(_BV(PD_PLUS));
     else
         PORTD |= _BV(PD_PLUS);
+#endif
 }
 
 /****************************************************************************
@@ -355,10 +360,11 @@ void timer_init(void)
      */
 
     /* Set initial timer count value */
-    OCR0A  = (uint8_t)(((F_CPU / 1024L) / MUX_RATE_HZ));
-
+    //OCR0A  = (uint8_t)(((F_CPU /8L) / MUX_RATE_HZ));
+    OCR0A  = (uint8_t)(((F_CPU) / MUX_RATE_HZ));
+	
     /* Divide clock(16mhz) by 1024 */
-    TCCR0B = _BV(CS02) | _BV(CS00);
+    TCCR0B = /*_BV(CS02) |*/ _BV(CS00);
 
     /* Normal CTC mode */
     TCCR0A = _BV(WGM01);
