@@ -19,11 +19,16 @@
 /* Non-zero to enable 500 KHz SPI */
 #define SPI_500KHZ          0
 
+<<<<<<< HEAD
 /* 7-Segment multiplex interrupt rate 120kHz. Since we are handling
  * four segments states in the timer interrupt handler, each segment
  * gets updated at 30kHz refresh rate.
  */
 #define MUX_RATE_HZ         120000UL
+=======
+/* 7-Segment Refresh Rate */
+#define MUX_RATE_HZ         20000UL
+>>>>>>> 5f2f11671c45b7fc0509eb24e34331b734a473a6
 
 /*
  * Helper Macros
