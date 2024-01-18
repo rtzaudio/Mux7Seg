@@ -2,7 +2,7 @@
  *
  * STC-1200 Search Timer Communications controller for Ampex MM-1200
  *
- * Copyright (C) 2016-2018, RTZ Professional Audio, LLC
+ * Copyright (C) 2016-2024, RTZ Professional Audio, LLC
  *
  * All Rights Reserved
  *
@@ -19,30 +19,31 @@
 /* Non-zero to enable 500 KHz SPI */
 #define SPI_500KHZ          0
 
-/* 7-Segment Refresh Rate */
-#define MUX_RATE_HZ         400000UL
+/* 7-Segment multiplex interrupt rate 120kHz. Since we are handling
+ * four segments states in the timer interrupt handler, each segment
+ * gets updated at 30kHz refresh rate.
+ */
+#define MUX_RATE_HZ         120000UL
 
 /*
  * Helper Macros
  */
-
 #define _CLI()  __asm__ __volatile__ ("cli")
 #define _SEI()  __asm__ __volatile__ ("sei")
 #define _NOP()  __asm__ __volatile__ ("nop")
 
 /* Binary Display Time Data */
-
-struct segdata {
-	uint8_t flags;   /* 0=minus/1=plus */
-	uint8_t hour;    /* hour (1-12)    */
-	uint8_t mins;    /* minutes (0-59) */
-	uint8_t secs;    /* seconds (0-59) */
-};
+typedef struct _SEGDATA {
+	uint8_t flags;              /* 0=minus/1=plus */
+	uint8_t hour;               /* hour (1-12)    */
+	uint8_t mins;               /* minutes (0-59) */
+	uint8_t secs;               /* seconds (0-59) */
+} SEGDATA;
 
 /* Bit flags for segdata.flags */
-#define F_PLUS		0x01	/* 7-seg plus segment, negative if clear */
-#define F_BLINK		0x02	/* blink all seven segment displays      */
-#define F_BLANK		0x80	/* blank the entire display if set       */
+#define F_PLUS		0x01	    /* 7-seg plus segment, negative if clear */
+#define F_BLINK		0x02	    /* blink all seven segment displays      */
+#define F_BLANK		0x80	    /* blank the entire display if set       */
 
 /*****************************************************************************
  * ATMEGA88 STC-1200 Hardware Definitions
@@ -69,5 +70,17 @@ struct segdata {
 #define PB_MOSI         PB3             /* (in)  SPI MOSI slave in     */
 #define PB_MISO         PB4             /* (out) SPI MISO slave out    */
 #define PB_SCK          PB5             /* (in)  SPI clock             */
+
+/*****************************************************************************
+ * Function Prototypes
+ *****************************************************************************/
+
+int main(void);
+void debug_tick();
+void delay_10ms(int count);
+void io_init(void);
+void timer_init(void);
+void spi_init_slave(void);
+unsigned char spi_transaction(unsigned char data);
 
 /* End-Of-File */

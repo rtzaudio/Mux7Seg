@@ -2,8 +2,7 @@
  *
  * STC-1200 Search Timer Communications controller for Ampex MM-1200
  *
- * Copyright (C) 2016-2018, RTZ Professional Audio, LLC
- *
+ * Copyright (C) 2016-2024, RTZ Professional Audio, LLC
  * All Rights Reserved
  *
  * RTZ is registered trademark of RTZ Professional Audio, LLC
@@ -28,21 +27,22 @@
 #include "usart.h"
  
 /* Fuse settings for ELF programmers. These fuse
- * settings are for 16Mhz external crystal.
+ * settings are for 16Mhz external 18pF crystal.
  */
-FUSES = 
-{
+FUSES = {
 	.extended = 0xF9,
-	.high = 0xDF,
-	.low  = 0xF7
+	.high     = 0xDF,
+	.low      = 0xF7
 };
+
 //LOCKBITS = (0xFF);
+
+/*** Static Memory ***/
 
 /* BCD bit map table for swapped I/O pins */
 #if (HARDWARE_REV < 2)
-static uint8_t g_xlate[] =
-{           //      BCDA
-	0x00,	// 0  = 0000
+static uint8_t g_xlate[] = {
+	0x00,	// 0  = 0000 (BCDA)
 	0x01,	// 1  = 0001
 	0x08,	// 2  = 1000
 	0x09,	// 3  = 1001
@@ -61,7 +61,20 @@ static uint8_t g_xlate[] =
 };
 #endif
 
-/* Helper Macros */
+/* BCD 7-seg data buffer */
+static SEGDATA g_segdata;
+
+static volatile uint8_t g_seg0_bcd = 0;
+static volatile uint8_t g_seg1_bcd = 0;
+static volatile uint8_t g_seg2_bcd = 0;
+static volatile uint8_t g_seg3_bcd = 0;
+
+const char _copyright[] PROGMEM = {
+    "STC-1200 7-SEG MUX, Copyright (C) 2024, RTZ Professional Audio"
+};
+
+/*** Helper Macros ***/
+
 #define MUX_ON(x)       ( PORTD &= ~(_BV(x)) )
 #define MUX_OFF(x)      ( PORTD |= _BV(x) )
 
@@ -70,24 +83,6 @@ static uint8_t g_xlate[] =
 #else
 #define BCD_MASK(bcd)   ( g_xlate[bcd] )
 #endif
-
-/* Static Memory */
-struct segdata g_segdata;   /* BCD 7-seg data */
-
-uint8_t state0_bcd = 0;
-uint8_t state1_bcd = 0;
-uint8_t state2_bcd = 0;
-uint8_t state3_bcd = 0;
-
-/* Function Prototypes */
-void delay_10ms(int count);
-void io_init(void);
-void timer_init(void);
-void spi_init_slave(void);
-
-const char _copyright[] PROGMEM = {
-    "STC-1200 7-SEG MUX, Copyright (C) 2024, RTZ Professional Audio"
-};
 
 /****************************************************************************
  * Helper Functions
@@ -220,15 +215,17 @@ int main(void)
 			g_segdata.hour  = buf[2] & 0x01;
 			g_segdata.flags = buf[3];
 
-            /* Pre calculate the segment values to avoid math in ISR */            
+            /* Pre calculate the 7-segment BCD values to avoid
+             * math and division in the timer ISR handler.
+             */
 			//_CLI();
-            state0_bcd = g_segdata.secs % 10;
-            state1_bcd = (g_segdata.secs - (g_segdata.secs % 10)) / 10;
-            state2_bcd = g_segdata.mins % 10;
-            state3_bcd = (g_segdata.mins - (g_segdata.mins % 10)) / 10;
+            g_seg0_bcd = g_segdata.secs % 10;
+            g_seg1_bcd = (g_segdata.secs - (g_segdata.secs % 10)) / 10;
+            g_seg2_bcd = g_segdata.mins % 10;
+            g_seg3_bcd = (g_segdata.mins - (g_segdata.mins % 10)) / 10;
 			//_SEI();
 		}
-		
+
 TimeOut:
 		/* Start the loop over and attempt to synchronize again */
 		csum = 0;
@@ -241,15 +238,15 @@ TimeOut:
 
 ISR(TIMER0_COMPA_vect)
 {
-#if 1
+#if 0
+    /* debug port bit toggle */
 	PORTD = PORTD ^ _BV(PD2);
 #else	
-	uint8_t bcd;
     static uint8_t state = 0;
-	//static uint16_t blink = 0;
+	static uint16_t blink = 0;
 	
 	/* Handle blanked state logic */
-#if 0	
+    
 	if (g_segdata.flags & F_BLANK)
 	{
         /* Blank hour, plus is preserved */
@@ -269,7 +266,7 @@ ISR(TIMER0_COMPA_vect)
 		blink++;
 		
 		/* Blink OFF time */
-		if (blink <= (MUX_RATE_HZ/5))
+		if (blink <= (MUX_RATE_HZ/50))
 		{
 			/* Blank hour, plus is preserved */
 			PORTD |= _BV(PD_HOUR);
@@ -282,51 +279,46 @@ ISR(TIMER0_COMPA_vect)
 		}
 
 		/* Blink ON time */
-		if (blink >= (MUX_RATE_HZ/2))
+		if (blink >= (MUX_RATE_HZ/20))
 			blink = 0;
 	}
-#endif
-	
+
 	/*** Set digit/segment value for current multiplex state ***/
 	
     switch(state)
     {
         /*** TENS OF SECONDS ******************/
         case 0:
-            MUX_OFF(PD_TEN_MIN);            
             /* set tens of sec segment state */
-            //bcd = g_segdata.secs % 10;
-			PORTC = BCD_MASK(state0_bcd);
+            MUX_OFF(PD_TEN_MIN);            
+			PORTC = BCD_MASK(g_seg0_bcd);
             MUX_ON(PD_UNIT_SEC);
             ++state;
             break;
             
         /*** SECONDS UNIT *********************/
         case 1:
+            /* set unit sec segment state */
             MUX_OFF(PD_UNIT_SEC);
-            /* set unit sec segment state */            
-            //bcd = (g_segdata.secs - (g_segdata.secs % 10)) / 10;
-			PORTC = BCD_MASK(state1_bcd);
+			PORTC = BCD_MASK(g_seg1_bcd);
             MUX_ON(PD_TEN_SEC);
             ++state;
             break;
             
         /*** TENS OF MINUTES ******************/
         case 2:
-            MUX_OFF(PD_TEN_SEC);
             /* set tens of min segment state */
-            //bcd = g_segdata.mins % 10;
-			PORTC = BCD_MASK(state2_bcd);
+            MUX_OFF(PD_TEN_SEC);
+			PORTC = BCD_MASK(g_seg2_bcd);
             MUX_ON(PD_UNIT_MIN);
             ++state;
             break;
             
         /*** MINUTES UNIT *********************/
         default:
-            MUX_OFF(PD_UNIT_MIN);
             /* set unit min segment state */
-            //bcd = (g_segdata.mins - (g_segdata.mins % 10)) / 10;
-			PORTC = BCD_MASK(state3_bcd);
+            MUX_OFF(PD_UNIT_MIN);
+			PORTC = BCD_MASK(g_seg3_bcd);
             MUX_ON(PD_TEN_MIN);
             state = 0;
             break;
@@ -338,10 +330,10 @@ ISR(TIMER0_COMPA_vect)
      * other segments (as opposed to just on or off).
      */
     
-	//if (g_segdata.hour)
-    //    PORTD &= ~(_BV(PD_HOUR));
-    //else
-    //    PORTD |= _BV(PD_HOUR);
+	if (g_segdata.hour)
+        PORTD &= ~(_BV(PD_HOUR));
+    else
+        PORTD |= _BV(PD_HOUR);
         
     /* If the plus sign segment is enabled, set the plus sign
      * either on or off. We don't mux this segment as the 
@@ -350,13 +342,13 @@ ISR(TIMER0_COMPA_vect)
      * we just set this segment either on or off according
      * sign segment flag.
      */
-
+    
 exit:
 
-	//if (g_segdata.flags & F_PLUS)
-    //    PORTD &= ~(_BV(PD_PLUS));
-    //else
-    //    PORTD |= _BV(PD_PLUS);
+	if (g_segdata.flags & F_PLUS)
+        PORTD &= ~(_BV(PD_PLUS));
+    else
+        PORTD |= _BV(PD_PLUS);
 #endif
 }
 
@@ -375,15 +367,11 @@ void timer_init(void)
      */
 
     /* Set initial timer count value */
-    //OCR0A  = (uint8_t)(((F_CPU /8L) / MUX_RATE_HZ));
-    OCR0A  = (uint8_t)(((F_CPU) / MUX_RATE_HZ));
-	
-    /* Divide clock(16mhz) by 1024 */
-    TCCR0B = /*_BV(CS02) |*/ _BV(CS00);
-
+    OCR0A  = (uint8_t)(F_CPU / MUX_RATE_HZ);
+    /* No clock prescale divide */
+    TCCR0B = _BV(CS00);
     /* Normal CTC mode */
     TCCR0A = _BV(WGM01);
-
     /* Enable timer 0A interrupts */
     TIMSK0 |= _BV(OCIE0A);
 }
@@ -557,6 +545,12 @@ ISR(SPI_STC_vect)
 			g_segdata.flags |= F_PLUS;
 		else
 			g_segdata.flags &= ~(F_PLUS);
+
+        /* Update display mux 7-seg data */
+        g_seg0_bcd = g_segdata.secs % 10;
+        g_seg1_bcd = (g_segdata.secs - (g_segdata.secs % 10)) / 10;
+        g_seg2_bcd = g_segdata.mins % 10;
+        g_seg3_bcd = (g_segdata.mins - (g_segdata.mins % 10)) / 10;
 	}
 }
 
