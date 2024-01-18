@@ -35,3 +35,5 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 *.aem4f
+.vs/Mux7Seg/v14/.atsuo
+Mux7Seg/Mux7Seg.componentinfo.xml

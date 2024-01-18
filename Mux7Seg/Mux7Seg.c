@@ -265,7 +265,7 @@ ISR(TIMER0_COMPA_vect)
 		blink++;
 		
 		/* Blink OFF time */
-		if (blink <= (MUX_RATE_HZ/50))
+		if (blink <= (MUX_RATE_HZ/10))
 		{
 			/* Blank hour, plus is preserved */
 			PORTD |= _BV(PD_HOUR);
@@ -278,7 +278,7 @@ ISR(TIMER0_COMPA_vect)
 		}
 
 		/* Blink ON time */
-		if (blink >= (MUX_RATE_HZ/20))
+		if (blink >= (MUX_RATE_HZ/2))
 			blink = 0;
 	}
 
