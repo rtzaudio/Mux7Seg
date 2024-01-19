@@ -37,6 +37,30 @@ FUSES = {
 
 //LOCKBITS = (0xFF);
 
+/*** Helper Macros ***/
+
+#if (HARDWARE_REV > 1)
+#define BCD_MASK(bcd)   ( bcd )
+#else
+#define BCD_MASK(bcd)   ( g_xlate[bcd] )
+#endif
+
+/* Mux bits to turn on or off on a port */
+#define MUX_ON(x)       ( PORTD &= ~(_BV(x)) )
+#define MUX_OFF(x)      ( PORTD |= _BV(x) )
+
+/* Given 1 Hz = 1000 ms, the equation for hertz to milliseconds
+ * is Ms = 1 / Hz * 1000. This gives us the rate time, in milliseconds,
+ * for each timer tick. Then we can divide the time we want, by the 
+ * interrupt rate time, to get the number of ticks needed to meet
+ * the blink on/off times in milliseconds as needed.
+ */
+
+#define BLINK_TIME_MS(ms)   ((uint16_t)((float)ms / (1.0f / (float)MUX_RATE_HZ * 1000.0f)))
+
+#define BLINK_ON_TIME       800
+#define BLINK_OFF_TIME      200
+
 /*** Static Memory ***/
 
 /* BCD bit map table for swapped I/O pins */
@@ -73,17 +97,6 @@ static volatile uint8_t g_seg3 = 0;
 const char _copyright[] PROGMEM = {
     "STC-1200 7-SEG MUX, Copyright (C) 2024, RTZ Professional Audio"
 };
-
-/*** Helper Macros ***/
-
-#define MUX_ON(x)       ( PORTD &= ~(_BV(x)) )
-#define MUX_OFF(x)      ( PORTD |= _BV(x) )
-
-#if (HARDWARE_REV > 1)
-#define BCD_MASK(bcd)   ( bcd )
-#else
-#define BCD_MASK(bcd)   ( g_xlate[bcd] )
-#endif
 
 /****************************************************************************
  * Helper Functions
@@ -237,12 +250,6 @@ TimeOut:
 /****************************************************************************
  * Timer Interrupt Handler for 7-Segment Display Multiplexing
  ***************************************************************************/
-
-/* Given 1 Hz = 1000 ms, the equation for 
- * hertz to milliseconds is Ms = 1 / Hz ? 1000
- */
-
-#define BLINK_TIME_MS(ms)   ((uint16_t)((float)ms / (1.0f / (float)MUX_RATE_HZ * 1000.0f)))
                         
 ISR(TIMER0_COMPA_vect)
 {
@@ -273,8 +280,7 @@ ISR(TIMER0_COMPA_vect)
         blink++;
         
         /* Blink OFF time */
-        //if (blink <= (MUX_RATE_HZ/10))
-        if (blink <= BLINK_TIME_MS(20))
+        if (blink <= BLINK_TIME_MS(BLINK_OFF_TIME))
         {
             /* Blank hour, plus is preserved */
             PORTD |= _BV(PD_HOUR);
@@ -287,8 +293,7 @@ ISR(TIMER0_COMPA_vect)
         }
 
         /* Blink ON time */
-        //if (blink >= (MUX_RATE_HZ/2))
-        if (blink >= BLINK_TIME_MS(100))
+        if (blink >= BLINK_TIME_MS(BLINK_ON_TIME))
             blink = 0;
     }
 
