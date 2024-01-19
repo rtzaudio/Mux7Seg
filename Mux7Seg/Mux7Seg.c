@@ -189,7 +189,6 @@ int main(void)
             /* Calculate the 7-segment BCD values (division) to
              * avoid math and division in the timer ISR handler.
              */
-            
             //_CLI();
             g_seg0 = g_segdata.secs % 10;
             g_seg1 = (g_segdata.secs - (g_segdata.secs % 10)) / 10;
@@ -210,10 +209,6 @@ TimeOut:
                         
 ISR(TIMER0_COMPA_vect)
 {
-#if 0
-    /* debug port bit toggle */
-    PORTD = PORTD ^ _BV(PD2);
-#else	
     static uint8_t state = 0;
     static uint16_t blink = 0;
 
@@ -293,20 +288,18 @@ ISR(TIMER0_COMPA_vect)
             MUX_OFF(PD_UNIT_MIN);
             PORTC = g_seg3;
             MUX_ON(PD_TEN_MIN);
+            /* If the hour segment is enabled, toggle the 1-hour segment
+             * so it's refreshed at the same rate as the other 7-segment
+             * digits. We do this so it appears visually the same as the 
+             * other segments (as opposed to just on or off).
+             */
+            if (g_segdata.hour)
+                PORTD ^= _BV(PD_HOUR);
+            else
+                PORTD |= _BV(PD_HOUR);
             state = 0;
             break;
     }
-  
-    /* If the hour segment is enabled, toggle the 1-hour segment
-     * so it's refreshed at the same rate as the other 7-segment
-     * digits. We do this so it appears visually the same as the 
-     * other segments (as opposed to just on or off).
-     */
-    
-    if (g_segdata.hour)
-        PORTD &= ~(_BV(PD_HOUR));
-    else
-        PORTD |= _BV(PD_HOUR);
         
     /* If the plus sign segment is enabled, set the plus sign
      * either on or off. We don't mux this segment as the 
@@ -322,7 +315,6 @@ exit:
         PORTD &= ~(_BV(PD_PLUS));
     else
         PORTD |= _BV(PD_PLUS);
-#endif
 }
 
 /****************************************************************************
