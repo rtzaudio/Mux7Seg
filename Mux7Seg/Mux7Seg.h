@@ -16,11 +16,29 @@
 /* Non-zero to enable 500 KHz SPI */
 #define SPI_500KHZ          0
 
+/* Turn a port bit on or off */
+#define MUX_ON(x)           (PORTD &= ~(_BV(x)))
+#define MUX_OFF(x)          (PORTD |= _BV(x))
+
 /* 7-Segment multiplex interrupt rate 120kHz. Since we are handling
  * four segments states in the timer interrupt handler, each segment
- * gets updated at 30kHz refresh rate.
+ * gets updated at a 30kHz refresh rate.
  */
 #define MUX_RATE_HZ         120000UL
+
+/* Given 1 Hz = 1000 ms, the equation for hertz to milliseconds is
+ * Ms = 1 / Hz * 1000. We can calculate the rate time, in milliseconds,
+ * for each timer tick interrupt. Then we can divide the time we want,
+ * by the  interrupt rate time, to get the number of ticks needed to meet
+ * the blink on/off times in milliseconds desired.
+ */
+
+#define MUX_RATE_MS         (1.0f / (float)MUX_RATE_HZ * 1000.0f)
+
+#define BLINK_TIME_MS(ms)   ((uint16_t)((float)ms / MUX_RATE_MS))
+
+#define BLINK_ON_TIME       800
+#define BLINK_OFF_TIME      200
 
 /*
  * Helper Macros

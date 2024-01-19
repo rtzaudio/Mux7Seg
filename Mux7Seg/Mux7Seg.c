@@ -39,28 +39,6 @@ FUSES = {
 //LOCKBITS = (0xFF);
 
 /****************************************************************************
- * Helper Macros
- ***************************************************************************/
-
-/* Turn a port bit on or off */
-#define MUX_ON(x)       (PORTD &= ~(_BV(x)))
-#define MUX_OFF(x)      (PORTD |= _BV(x))
-
-/* Given 1 Hz = 1000 ms, the equation for hertz to milliseconds is
- * Ms = 1 / Hz * 1000. We can calculate the rate time, in milliseconds,
- * for each timer tick interrupt. Then we can divide the time we want,
- * by the  interrupt rate time, to get the number of ticks needed to meet
- * the blink on/off times in milliseconds desired.
- */
-
-#define TICK_RATE_MS        (1.0f / (float)MUX_RATE_HZ * 1000.0f)
-
-#define BLINK_TIME_MS(ms)   ((uint16_t)((float)ms / TICK_RATE_MS))
-
-#define BLINK_ON_TIME       800
-#define BLINK_OFF_TIME      200
-
-/****************************************************************************
  * Static Memory
  ***************************************************************************/
 
@@ -238,6 +216,9 @@ ISR(TIMER0_COMPA_vect)
 #else	
     static uint8_t state = 0;
     static uint16_t blink = 0;
+
+    /* Toggle pin PB0 for debugging */
+    PORTB = PORTB ^ _BV(PB0);
     
     /* Handle blanked state logic */
     if (g_segdata.flags & F_BLANK)
@@ -430,7 +411,7 @@ void io_init(void)
     //PORTB = _BV(PB_SSEL) | _BV(PB_MOSI) | _BV(PB_SCK);
     _NOP();	
     /* Set MISO to output, all others are inputs */
-    DDRB  = _BV(PB_MISO);
+    DDRB  = _BV(PB_MISO) | _BV(PB0);
 #endif
 }
   
