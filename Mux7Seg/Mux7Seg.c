@@ -217,8 +217,8 @@ ISR(TIMER0_COMPA_vect)
     static uint8_t state = 0;
     static uint16_t blink = 0;
 
-    /* Toggle pin PB0 for debugging */
-    PORTB = PORTB ^ _BV(PB0);
+    /* Toggle pin PC5 for debugging */
+    PORTC = PORTC ^ _BV(PC5);
     
     /* Handle blanked state logic */
     if (g_segdata.flags & F_BLANK)
@@ -368,7 +368,7 @@ void io_init(void)
     /* PC0-PC3 all pins low, no pullups */
     PORTC = 0x0;
     /* Set the output pins, all others are inputs */
-    DDRC  = _BV(PC_7SEG_A) | _BV(PC_7SEG_B) | _BV(PC_7SEG_C) | _BV(PC_7SEG_D);
+    DDRC  = _BV(PC_7SEG_A) | _BV(PC_7SEG_B) | _BV(PC_7SEG_C) | _BV(PC_7SEG_D) | _BV(PC5);
     _NOP();
 
     /* PORT-D
@@ -411,7 +411,7 @@ void io_init(void)
     //PORTB = _BV(PB_SSEL) | _BV(PB_MOSI) | _BV(PB_SCK);
     _NOP();	
     /* Set MISO to output, all others are inputs */
-    DDRB  = _BV(PB_MISO) | _BV(PB0);
+    DDRB  = _BV(PB_MISO);
 #endif
 }
   
