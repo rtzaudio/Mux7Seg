@@ -10,6 +10,7 @@
  * This firmware drives the 7-segment display on the tape machine transport
  * using an ATMega88 to drive the multiplexed display segments. The main STC
  * processor communicates to this Mega88 via a standard UART interface.
+ *
  * ============================================================================
  */
 
@@ -37,53 +38,31 @@ FUSES = {
 
 //LOCKBITS = (0xFF);
 
-/*** Helper Macros ***/
+/****************************************************************************
+ * Helper Macros
+ ***************************************************************************/
 
-#if (HARDWARE_REV > 1)
-#define BCD_MASK(bcd)   ( bcd )
-#else
-#define BCD_MASK(bcd)   ( g_xlate[bcd] )
-#endif
+/* Turn a port bit on or off */
+#define MUX_ON(x)       (PORTD &= ~(_BV(x)))
+#define MUX_OFF(x)      (PORTD |= _BV(x))
 
-/* Mux bits to turn on or off on a port */
-#define MUX_ON(x)       ( PORTD &= ~(_BV(x)) )
-#define MUX_OFF(x)      ( PORTD |= _BV(x) )
-
-/* Given 1 Hz = 1000 ms, the equation for hertz to milliseconds
- * is Ms = 1 / Hz * 1000. This gives us the rate time, in milliseconds,
- * for each timer tick. Then we can divide the time we want, by the 
- * interrupt rate time, to get the number of ticks needed to meet
- * the blink on/off times in milliseconds as needed.
+/* Given 1 Hz = 1000 ms, the equation for hertz to milliseconds is
+ * Ms = 1 / Hz * 1000. We can calculate the rate time, in milliseconds,
+ * for each timer tick interrupt. Then we can divide the time we want,
+ * by the  interrupt rate time, to get the number of ticks needed to meet
+ * the blink on/off times in milliseconds desired.
  */
 
-#define BLINK_TIME_MS(ms)   ((uint16_t)((float)ms / (1.0f / (float)MUX_RATE_HZ * 1000.0f)))
+#define TICK_RATE_MS        (1.0f / (float)MUX_RATE_HZ * 1000.0f)
+
+#define BLINK_TIME_MS(ms)   ((uint16_t)((float)ms / TICK_RATE_MS))
 
 #define BLINK_ON_TIME       800
 #define BLINK_OFF_TIME      200
 
-/*** Static Memory ***/
-
-/* BCD bit map table for swapped I/O pins */
-#if (HARDWARE_REV < 2)
-static uint8_t g_xlate[] = {
-    0x00,	// 0  = 0000 (BCDA)
-    0x01,	// 1  = 0001
-    0x08,	// 2  = 1000
-    0x09,	// 3  = 1001
-    0x04,	// 4  = 0100
-    0x05,	// 5  = 0101
-    0x0C,	// 6  = 1100
-    0x0D,	// 7  = 1101
-    0x02,	// 8  = 0010
-    0x03,	// 9  = 0011
-    0x0A,	// 10 = 1010
-    0x0B,	// 11 = 1011
-    0x06,	// 12 = 0110
-    0x07,	// 13 = 0111
-    0x0E,	// 14 = 1110
-    0x0F,	// 15 = 1111
-};
-#endif
+/****************************************************************************
+ * Static Memory
+ ***************************************************************************/
 
 /* BCD 7-seg data buffer */
 static SEGDATA g_segdata;
@@ -274,7 +253,6 @@ ISR(TIMER0_COMPA_vect)
     }
 
     /* Handle blink state logic */
-
     if (g_segdata.flags & F_BLINK)
     {
         blink++;
@@ -305,7 +283,7 @@ ISR(TIMER0_COMPA_vect)
         case 0:
             /* set tens of sec segment state */
             MUX_OFF(PD_TEN_MIN);            
-            PORTC = BCD_MASK(g_seg0);
+            PORTC = g_seg0;
             MUX_ON(PD_UNIT_SEC);
             ++state;
             break;
@@ -314,7 +292,7 @@ ISR(TIMER0_COMPA_vect)
         case 1:
             /* set unit sec segment state */
             MUX_OFF(PD_UNIT_SEC);
-            PORTC = BCD_MASK(g_seg1);
+            PORTC = g_seg1;
             MUX_ON(PD_TEN_SEC);
             ++state;
             break;
@@ -323,7 +301,7 @@ ISR(TIMER0_COMPA_vect)
         case 2:
             /* set tens of min segment state */
             MUX_OFF(PD_TEN_SEC);
-            PORTC = BCD_MASK(g_seg2);
+            PORTC = g_seg2;
             MUX_ON(PD_UNIT_MIN);
             ++state;
             break;
@@ -332,7 +310,7 @@ ISR(TIMER0_COMPA_vect)
         default:
             /* set unit min segment state */
             MUX_OFF(PD_UNIT_MIN);
-            PORTC = BCD_MASK(g_seg3);
+            PORTC = g_seg3;
             MUX_ON(PD_TEN_MIN);
             state = 0;
             break;
